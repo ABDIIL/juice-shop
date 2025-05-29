@@ -1,5 +1,5 @@
 # .github/workflows/sbom.yml
-name: Generate CycloneDX SBOM
+name: Generate SBOM and Scan Vulnerabilities
 
 on:
   push:
@@ -42,9 +42,29 @@ jobs:
           npm install -g @cyclonedx/cyclonedx-npm
           cyclonedx-npm --output-file bom.json
 
-      # 5) Upload the SBOM as an artifact
+      # 5) Install Trivy
+      - name: Install Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          trivy_version: 'v0.62.1'
+
+      # 6) Scan for vulnerabilities
+      - name: Scan for vulnerabilities
+        run: |
+          trivy fs --format json --output trivy-results.json .
+          trivy fs --format table --output trivy-results.txt .
+
+      # 7) Upload artifacts
       - name: Upload SBOM artifact
         uses: actions/upload-artifact@v4
         with:
           name: sbom
           path: bom.json
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: scan-results
+          path: |
+            trivy-results.json
+            trivy-results.txt
