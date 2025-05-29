@@ -1,42 +1,55 @@
-# .github/workflows/sbom.yml
 name: Generate CycloneDX SBOM
 
 on:
   push:
     branches:
       - main
+    # only run when code or lockfiles change
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
   pull_request:
     branches:
       - main
-  workflow_dispatch:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'src/**'
 
 jobs:
   build-and-sbom:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) get the code
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # 2) set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
 
+      # 3) install dependencies
       - name: Install dependencies
         run: npm ci
 
-      - name: Install CycloneDX plugin
-        run: npm install @cyclonedx/bom@latest --no-save
+      # 4) build the app (optional but recommended)
+      - name: Build Juice Shop
+        run: npm run build
 
-      - name: Generate SBOM
-        run: |
-          npx @cyclonedx/bom \
-            --output-format json \
-            --output-file cyclonedx-sbom.json
-
-      - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v3
+      # 5) generate the SBOM
+      - name: Generate CycloneDX SBOM
+        uses: CycloneDX/cyclonedx-action@v0.17.0
         with:
-          name: sbom-json
-          path: cyclonedx-sbom.json
+          output-format: 'json'
+          output-file: 'sbom.json'
+
+      # 6) upload it as a GitHub Actions artifact
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
