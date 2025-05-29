@@ -1,0 +1,38 @@
+name: Generate CycloneDX SBOM
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-and-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      # 1) Checkout de code
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2) Installeer Node.js en dependencies (Juice Shop is een Node-project)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+
+      # 3) Genereer SBOM met cyclonedx-node-module
+      - name: Install CycloneDX plugin
+        run: npm install @cyclonedx/bom@latest --no-save
+      - name: Generate SBOM
+        run: |
+          npx @cyclonedx/bom \
+            --output-format json \
+            --output-file cyclonedx-sbom.json
+
+      # 4) Upload SBOM als artifact
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sbom-json
+          path: cyclonedx-sbom.json
