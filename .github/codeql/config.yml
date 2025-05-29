@@ -1,0 +1,15 @@
+# .github/codeql/config.yml
+analyze:
+  overrides:
+    - language: javascript
+      exclude:
+        - dist/**
+        - lib/**
+        - node_modules/**
+        - src/**/*.d.ts
+    - language: typescript
+      exclude:
+        - dist/**
+        - lib/**
+        - node_modules/**
+        - src/**/*.d.ts
