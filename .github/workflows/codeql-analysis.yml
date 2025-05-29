@@ -1,3 +1,4 @@
+# .github/workflows/codeql-analysis.yml
 name: "CodeQL Analysis"
 
 on:
@@ -6,12 +7,13 @@ on:
   pull_request:
     branches: [ main ]
   schedule:
-    - cron: '30 2 * * 0'  # elke zondag 02:30 UTC
+    - cron: '30 2 * * 0'  # elke zondag om 02:30 UTC
 
 jobs:
   analyze:
     name: Analyze code with CodeQL
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -19,10 +21,10 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
+          # scan JavaScript én TypeScript
           languages: javascript,typescript
-          # wijs onze config aan
-          config: .github/codeql/config.yml
-          # (óók oké: config-file: tsconfig.json, maar exclude moet via config)
+          # laad onze custom path-excludes
+          config-file: .github/codeql/config.yml
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
